@@ -21,7 +21,7 @@ const ProjectForm = ({
     title: project?.title || '',
     description: project?.description || '',
     image: project?.image || '',
-    techStack: project?.techStack.join(', ') || '',
+    techStack: project?.techStack?.join(', ') || '',
     liveUrl: project?.liveUrl || '',
     githubUrl: project?.githubUrl || '',
   });
@@ -88,6 +88,7 @@ const ProjectManager = () => {
   const { projects, addProject, updateProject, deleteProject } = useProjects();
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddingNew, setIsAddingNew] = useState(false);
 
   const handleSave = (projectData: Omit<Project, 'id'>) => {
     if (editingProject) {
@@ -96,16 +97,25 @@ const ProjectManager = () => {
       addProject(projectData);
     }
     setEditingProject(null);
+    setIsAddingNew(false);
     setIsDialogOpen(false);
   };
 
   const handleEdit = (project: Project) => {
     setEditingProject(project);
+    setIsAddingNew(false);
+    setIsDialogOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setEditingProject(null);
+    setIsAddingNew(true);
     setIsDialogOpen(true);
   };
 
   const handleCancel = () => {
     setEditingProject(null);
+    setIsAddingNew(false);
     setIsDialogOpen(false);
   };
 
@@ -115,7 +125,10 @@ const ProjectManager = () => {
         <DialogTrigger asChild>
           <Button 
             className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
-            onClick={() => setEditingProject(null)}
+            onClick={() => {
+              setEditingProject(null);
+              setIsAddingNew(false);
+            }}
           >
             <Plus size={16} className="mr-2" />
             Manage Projects
@@ -124,13 +137,13 @@ const ProjectManager = () => {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700">
           <DialogHeader>
             <DialogTitle className="text-white">
-              {editingProject ? 'Edit Project' : 'Manage Projects'}
+              {editingProject ? 'Edit Project' : isAddingNew ? 'Add New Project' : 'Manage Projects'}
             </DialogTitle>
           </DialogHeader>
           
-          {editingProject ? (
+          {(editingProject || isAddingNew) ? (
             <ProjectForm 
-              project={editingProject} 
+              project={editingProject || undefined} 
               onSave={handleSave} 
               onCancel={handleCancel} 
             />
@@ -139,7 +152,7 @@ const ProjectManager = () => {
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-white">Your Projects</h3>
                 <Button 
-                  onClick={() => setEditingProject({} as Project)}
+                  onClick={handleAddNew}
                   className="bg-green-500 hover:bg-green-600"
                 >
                   <Plus size={16} className="mr-2" />
@@ -186,13 +199,6 @@ const ProjectManager = () => {
                   </Card>
                 ))}
               </div>
-              
-              {editingProject && Object.keys(editingProject).length === 0 && (
-                <div className="border-t border-slate-700 pt-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Add New Project</h3>
-                  <ProjectForm onSave={handleSave} onCancel={handleCancel} />
-                </div>
-              )}
             </div>
           )}
         </DialogContent>
