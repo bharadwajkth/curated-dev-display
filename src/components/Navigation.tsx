@@ -55,7 +55,7 @@ const Navigation = () => {
       </div>
 
       {isOpen && (
-        <div className="md:hidden bg-slate-800/95 backdrop-blur-sm">
+        <div className="md:hidden bg-slate-800/95 backdrop-blur-sm z-50">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navItems.map((item) => (
               <button
