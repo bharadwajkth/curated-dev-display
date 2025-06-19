@@ -35,10 +35,13 @@ const defaultProjects: Project[] = [
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>(() => {
     const saved = localStorage.getItem('portfolio-projects');
-    return saved ? JSON.parse(saved) : defaultProjects;
+    const initialProjects = saved ? JSON.parse(saved) : defaultProjects;
+    console.log('Initial projects loaded:', initialProjects);
+    return initialProjects;
   });
 
   useEffect(() => {
+    console.log('Saving projects to localStorage:', projects);
     localStorage.setItem('portfolio-projects', JSON.stringify(projects));
   }, [projects]);
 
@@ -47,14 +50,21 @@ export const useProjects = () => {
       ...project,
       id: Date.now().toString(),
     };
-    setProjects(prev => [...prev, newProject]);
+    console.log('Adding new project:', newProject);
+    setProjects(prev => {
+      const updated = [...prev, newProject];
+      console.log('Updated projects array:', updated);
+      return updated;
+    });
   };
 
   const updateProject = (id: string, updates: Partial<Project>) => {
+    console.log('Updating project:', id, updates);
     setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
   };
 
   const deleteProject = (id: string) => {
+    console.log('Deleting project:', id);
     setProjects(prev => prev.filter(p => p.id !== id));
   };
 

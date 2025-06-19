@@ -20,7 +20,7 @@ const Navigation = () => {
   };
 
   return (
-    <nav className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-sm z-50 border-b border-slate-700/50">
+    <nav className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-sm z-40 border-b border-slate-700/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
@@ -55,7 +55,7 @@ const Navigation = () => {
       </div>
 
       {isOpen && (
-        <div className="md:hidden bg-slate-800/95 backdrop-blur-sm z-50">
+        <div className="md:hidden bg-slate-800/95 backdrop-blur-sm z-50 relative">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navItems.map((item) => (
               <button

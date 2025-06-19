@@ -43,11 +43,11 @@ const ProjectManager = () => {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-40 md:z-50">
+    <div className="fixed top-20 right-4 z-30 md:top-4 md:z-45">
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button 
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg text-xs md:text-sm px-2 py-1 md:px-4 md:py-2"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg text-xs md:text-sm px-3 py-2 md:px-4 md:py-2"
             onClick={() => {
               setEditingProject(null);
               setIsAddingNew(false);
@@ -58,7 +58,7 @@ const ProjectManager = () => {
             <span className="sm:hidden">Projects</span>
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700 w-[95vw] md:w-full">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700 w-[95vw] md:w-full z-50">
           <DialogHeader>
             <DialogTitle className="text-white">
               {editingProject ? 'Edit Project' : isAddingNew ? 'Add New Project' : 'Manage Projects'}
