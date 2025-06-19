@@ -14,9 +14,6 @@ const Navigation = () => {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const { projects, addProject, updateProject, deleteProject } = useProjects();
 
-  // Simple admin check - you can replace this with your preferred authentication method
-  const isAdmin = localStorage.getItem('portfolio-admin') === 'true';
-
   const navItems = [
     { name: "Home", href: "#home" },
     { name: "About", href: "#about" },
@@ -114,15 +111,13 @@ const Navigation = () => {
                 {item.name}
               </button>
             ))}
-            {isAdmin && (
-              <button
-                onClick={handleManageProjects}
-                className="text-gray-300 hover:text-white block px-3 py-2 text-base font-medium w-full text-left hover:bg-slate-700/50 rounded-md transition-colors duration-200 flex items-center"
-              >
-                <Plus size={16} className="mr-2" />
-                Manage Projects
-              </button>
-            )}
+            <button
+              onClick={handleManageProjects}
+              className="text-gray-300 hover:text-white block px-3 py-2 text-base font-medium w-full text-left hover:bg-slate-700/50 rounded-md transition-colors duration-200 flex items-center"
+            >
+              <Plus size={16} className="mr-2" />
+              Manage Projects
+            </button>
           </div>
         </div>
       )}

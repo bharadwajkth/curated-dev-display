@@ -13,14 +13,6 @@ const ProjectManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
 
-  // Simple admin check - you can replace this with your preferred authentication method
-  const isAdmin = localStorage.getItem('portfolio-admin') === 'true';
-
-  // Don't render anything if not admin
-  if (!isAdmin) {
-    return null;
-  }
-
   const handleSave = (projectData: Omit<Project, 'id'>) => {
     if (editingProject) {
       updateProject(editingProject.id, projectData);
