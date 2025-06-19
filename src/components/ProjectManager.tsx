@@ -43,7 +43,7 @@ const ProjectManager = () => {
   };
 
   return (
-    <div className="fixed top-20 right-4 z-30 md:top-4 md:z-45">
+    <div className="fixed top-20 right-4 z-30 md:top-4 md:z-40">
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button 
