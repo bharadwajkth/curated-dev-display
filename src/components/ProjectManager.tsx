@@ -13,6 +13,14 @@ const ProjectManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
 
+  // Simple admin check - you can replace this with your preferred authentication method
+  const isAdmin = localStorage.getItem('portfolio-admin') === 'true';
+
+  // Don't render anything if not admin
+  if (!isAdmin) {
+    return null;
+  }
+
   const handleSave = (projectData: Omit<Project, 'id'>) => {
     if (editingProject) {
       updateProject(editingProject.id, projectData);
@@ -43,17 +51,17 @@ const ProjectManager = () => {
   };
 
   return (
-    <div className="fixed top-20 right-4 z-30 md:top-4 md:z-40">
+    <div className="hidden md:block fixed top-20 right-4 z-30 lg:top-4 lg:z-40">
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button 
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg text-xs md:text-sm px-3 py-2 md:px-4 md:py-2"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg text-xs lg:text-sm px-3 py-2 lg:px-4 lg:py-2"
             onClick={() => {
               setEditingProject(null);
               setIsAddingNew(false);
             }}
           >
-            <Plus size={14} className="mr-1 md:mr-2" />
+            <Plus size={14} className="mr-1 lg:mr-2" />
             <span className="hidden sm:inline">Manage Projects</span>
             <span className="sm:hidden">Projects</span>
           </Button>

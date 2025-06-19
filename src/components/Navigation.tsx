@@ -1,9 +1,21 @@
 
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Project, useProjects } from "../hooks/useProjects";
+import ProjectForm from "./ProjectForm";
+import ProjectList from "./ProjectList";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const { projects, addProject, updateProject, deleteProject } = useProjects();
+
+  // Simple admin check - you can replace this with your preferred authentication method
+  const isAdmin = localStorage.getItem('portfolio-admin') === 'true';
 
   const navItems = [
     { name: "Home", href: "#home" },
@@ -19,8 +31,44 @@ const Navigation = () => {
     setIsOpen(false);
   };
 
+  const handleSave = (projectData: Omit<Project, 'id'>) => {
+    if (editingProject) {
+      updateProject(editingProject.id, projectData);
+    } else {
+      addProject(projectData);
+    }
+    setEditingProject(null);
+    setIsAddingNew(false);
+    setIsProjectDialogOpen(false);
+  };
+
+  const handleEdit = (project: Project) => {
+    setEditingProject(project);
+    setIsAddingNew(false);
+    setIsProjectDialogOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setEditingProject(null);
+    setIsAddingNew(true);
+    setIsProjectDialogOpen(true);
+  };
+
+  const handleCancel = () => {
+    setEditingProject(null);
+    setIsAddingNew(false);
+    setIsProjectDialogOpen(false);
+  };
+
+  const handleManageProjects = () => {
+    setEditingProject(null);
+    setIsAddingNew(false);
+    setIsProjectDialogOpen(true);
+    setIsOpen(false);
+  };
+
   return (
-    <nav className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-sm z-40 border-b border-slate-700/50">
+    <nav className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-sm z-50 border-b border-slate-700/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
@@ -66,9 +114,44 @@ const Navigation = () => {
                 {item.name}
               </button>
             ))}
+            {isAdmin && (
+              <button
+                onClick={handleManageProjects}
+                className="text-gray-300 hover:text-white block px-3 py-2 text-base font-medium w-full text-left hover:bg-slate-700/50 rounded-md transition-colors duration-200 flex items-center"
+              >
+                <Plus size={16} className="mr-2" />
+                Manage Projects
+              </button>
+            )}
           </div>
         </div>
       )}
+
+      {/* Project Management Dialog for Mobile */}
+      <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700 w-[95vw] md:w-full z-50">
+          <DialogHeader>
+            <DialogTitle className="text-white">
+              {editingProject ? 'Edit Project' : isAddingNew ? 'Add New Project' : 'Manage Projects'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {(editingProject || isAddingNew) ? (
+            <ProjectForm 
+              project={editingProject || undefined} 
+              onSave={handleSave} 
+              onCancel={handleCancel} 
+            />
+          ) : (
+            <ProjectList
+              projects={projects}
+              onEdit={handleEdit}
+              onDelete={deleteProject}
+              onAddNew={handleAddNew}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </nav>
   );
 };
