@@ -5,6 +5,8 @@ import { useProjects } from "../hooks/useProjects";
 const Projects = () => {
   const { projects } = useProjects();
 
+  console.log('Projects component rendering with projects:', projects);
+
   return (
     <section id="projects" className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -19,17 +21,20 @@ const Projects = () => {
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              title={project.title}
-              description={project.description}
-              image={project.image}
-              techStack={project.techStack}
-              liveUrl={project.liveUrl}
-              githubUrl={project.githubUrl}
-            />
-          ))}
+          {projects.map((project) => {
+            console.log('Rendering project:', project.title);
+            return (
+              <ProjectCard
+                key={project.id}
+                title={project.title}
+                description={project.description}
+                image={project.image}
+                techStack={project.techStack}
+                liveUrl={project.liveUrl}
+                githubUrl={project.githubUrl}
+              />
+            );
+          })}
         </div>
       </div>
     </section>

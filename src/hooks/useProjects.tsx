@@ -41,7 +41,7 @@ export const useProjects = () => {
   });
 
   useEffect(() => {
-    console.log('Saving projects to localStorage:', projects);
+    console.log('Projects state updated, saving to localStorage:', projects);
     localStorage.setItem('portfolio-projects', JSON.stringify(projects));
   }, [projects]);
 
@@ -60,12 +60,20 @@ export const useProjects = () => {
 
   const updateProject = (id: string, updates: Partial<Project>) => {
     console.log('Updating project:', id, updates);
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+    setProjects(prev => {
+      const updated = prev.map(p => p.id === id ? { ...p, ...updates } : p);
+      console.log('Updated projects after edit:', updated);
+      return updated;
+    });
   };
 
   const deleteProject = (id: string) => {
     console.log('Deleting project:', id);
-    setProjects(prev => prev.filter(p => p.id !== id));
+    setProjects(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      console.log('Updated projects after delete:', updated);
+      return updated;
+    });
   };
 
   return {
