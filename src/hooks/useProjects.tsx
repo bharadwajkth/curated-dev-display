@@ -34,15 +34,37 @@ const defaultProjects: Project[] = [
 
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>(() => {
+    console.log('=== INITIALIZING PROJECTS STATE ===');
     const saved = localStorage.getItem('portfolio-projects');
-    const initialProjects = saved ? JSON.parse(saved) : defaultProjects;
-    console.log('Initial projects loaded:', initialProjects);
-    return initialProjects;
+    console.log('Raw localStorage data:', saved);
+    
+    if (saved) {
+      try {
+        const parsedProjects = JSON.parse(saved);
+        console.log('Parsed projects from localStorage:', parsedProjects);
+        console.log('Number of projects in localStorage:', parsedProjects.length);
+        return parsedProjects;
+      } catch (error) {
+        console.error('Error parsing localStorage projects:', error);
+        return defaultProjects;
+      }
+    } else {
+      console.log('No saved projects found, using defaults');
+      return defaultProjects;
+    }
   });
 
   useEffect(() => {
-    console.log('Projects state updated, saving to localStorage:', projects);
+    console.log('=== PROJECTS STATE CHANGED ===');
+    console.log('Current projects state:', projects);
+    console.log('Number of projects:', projects.length);
+    console.log('Project titles:', projects.map(p => p.title));
+    console.log('Saving to localStorage with key: portfolio-projects');
     localStorage.setItem('portfolio-projects', JSON.stringify(projects));
+    
+    // Verify it was saved
+    const verification = localStorage.getItem('portfolio-projects');
+    console.log('Verification - data in localStorage after save:', verification);
   }, [projects]);
 
   const addProject = (project: Omit<Project, 'id'>) => {
@@ -50,16 +72,23 @@ export const useProjects = () => {
       ...project,
       id: Date.now().toString(),
     };
-    console.log('Adding new project:', newProject);
+    console.log('=== ADDING NEW PROJECT ===');
+    console.log('New project data:', newProject);
+    
     setProjects(prev => {
       const updated = [...prev, newProject];
-      console.log('Updated projects array:', updated);
+      console.log('Previous projects:', prev);
+      console.log('Updated projects array after add:', updated);
+      console.log('Total projects after add:', updated.length);
       return updated;
     });
   };
 
   const updateProject = (id: string, updates: Partial<Project>) => {
-    console.log('Updating project:', id, updates);
+    console.log('=== UPDATING PROJECT ===');
+    console.log('Updating project ID:', id);
+    console.log('Updates:', updates);
+    
     setProjects(prev => {
       const updated = prev.map(p => p.id === id ? { ...p, ...updates } : p);
       console.log('Updated projects after edit:', updated);
@@ -68,10 +97,13 @@ export const useProjects = () => {
   };
 
   const deleteProject = (id: string) => {
-    console.log('Deleting project:', id);
+    console.log('=== DELETING PROJECT ===');
+    console.log('Deleting project ID:', id);
+    
     setProjects(prev => {
       const updated = prev.filter(p => p.id !== id);
       console.log('Updated projects after delete:', updated);
+      console.log('Remaining project count:', updated.length);
       return updated;
     });
   };
