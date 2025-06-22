@@ -15,12 +15,12 @@ const Hero = () => {
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
             <span className="block text-white">Hi, I'm</span>
             <span className="block bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Alex Johnson
+              Bharadwaj
             </span>
           </h1>
           
           <p className="text-xl md:text-2xl text-gray-300 mb-4 font-light">
-            Full-Stack Developer
+            Passionate Web Developer
           </p>
           
           <p className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto leading-relaxed">
