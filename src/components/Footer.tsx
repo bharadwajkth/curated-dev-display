@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center">
           <p className="text-gray-400">
-            © {currentYear} Alex Johnson. All rights reserved. Built with React & Tailwind CSS.
+            © {currentYear} Bharadwaj. All rights reserved. Built with React & Tailwind CSS.
           </p>
           <p className="text-gray-500 text-sm mt-2">
             Designed and developed with ❤️
