@@ -15,7 +15,7 @@ const About = () => {
             <div className="w-80 h-80 mx-auto relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full blur-xl opacity-30"></div>
               <img
-                src="./public/DSC_9794.JPG"
+                src="./DSC_9794.JPG"
                 alt="Bharadwaj K"
                 className="relative w-full h-full object-cover rounded-full border-4 border-slate-700 shadow-2xl"
               />
