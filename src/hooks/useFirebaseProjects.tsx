@@ -50,6 +50,11 @@ export const useFirebaseProjects = () => {
 
   const fetchProjects = async () => {
     try {
+      // Validate Firebase configuration before making requests
+      if (!db) {
+        throw new Error('Firebase is not properly initialized. Check your configuration.');
+      }
+
       const q = query(collection(db, 'projects'), orderBy('title'));
       const querySnapshot = await getDocs(q);
       const projectsData = querySnapshot.docs.map(doc => ({
@@ -65,7 +70,19 @@ export const useFirebaseProjects = () => {
       }
     } catch (error) {
       console.error('Error fetching projects:', error);
-      // Fallback to default projects on error
+      
+      // Provide more specific error handling
+      if (error instanceof Error) {
+        if (error.message.includes('permission-denied') || error.message.includes('insufficient permissions')) {
+          console.warn('Firestore permissions issue. Using default projects. Please check your Firebase Security Rules.');
+        } else if (error.message.includes('network')) {
+          console.warn('Network error. Using default projects. Please check your internet connection.');
+        } else {
+          console.warn('Firebase error:', error.message);
+        }
+      }
+      
+      // Fallback to default projects on any error
       setProjects(defaultProjects);
     } finally {
       setLoading(false);
@@ -78,36 +95,65 @@ export const useFirebaseProjects = () => {
 
   const addProject = async (project: Omit<Project, 'id'>) => {
     if (!currentUser) {
-      throw new Error('You must be logged in to add projects');
+      throw new Error('Authentication required: You must be logged in to add projects');
+    }
+
+    if (!currentUser.emailVerified) {
+      throw new Error('Email verification required: Please verify your email before adding projects');
     }
 
     try {
-      const docRef = await addDoc(collection(db, 'projects'), project);
+      const docRef = await addDoc(collection(db, 'projects'), {
+        ...project,
+        createdBy: currentUser.uid,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      
       const newProject = { id: docRef.id, ...project };
       setProjects(prev => [...prev, newProject]);
     } catch (error) {
       console.error('Error adding project:', error);
+      if (error instanceof Error && error.message.includes('permission-denied')) {
+        throw new Error('Permission denied: You do not have permission to add projects');
+      }
       throw error;
     }
   };
 
   const updateProject = async (id: string, updates: Partial<Project>) => {
     if (!currentUser) {
-      throw new Error('You must be logged in to update projects');
+      throw new Error('Authentication required: You must be logged in to update projects');
+    }
+
+    if (!currentUser.emailVerified) {
+      throw new Error('Email verification required: Please verify your email before updating projects');
     }
 
     try {
-      await updateDoc(doc(db, 'projects', id), updates);
+      await updateDoc(doc(db, 'projects', id), {
+        ...updates,
+        updatedBy: currentUser.uid,
+        updatedAt: new Date().toISOString()
+      });
+      
       setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
     } catch (error) {
       console.error('Error updating project:', error);
+      if (error instanceof Error && error.message.includes('permission-denied')) {
+        throw new Error('Permission denied: You do not have permission to update this project');
+      }
       throw error;
     }
   };
 
   const deleteProject = async (id: string) => {
     if (!currentUser) {
-      throw new Error('You must be logged in to delete projects');
+      throw new Error('Authentication required: You must be logged in to delete projects');
+    }
+
+    if (!currentUser.emailVerified) {
+      throw new Error('Email verification required: Please verify your email before deleting projects');
     }
 
     try {
@@ -115,6 +161,9 @@ export const useFirebaseProjects = () => {
       setProjects(prev => prev.filter(p => p.id !== id));
     } catch (error) {
       console.error('Error deleting project:', error);
+      if (error instanceof Error && error.message.includes('permission-denied')) {
+        throw new Error('Permission denied: You do not have permission to delete this project');
+      }
       throw error;
     }
   };
