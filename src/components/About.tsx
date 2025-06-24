@@ -24,11 +24,11 @@ const About = () => {
           
           <div className="space-y-6">
             <h3 className="text-2xl md:text-3xl font-semibold text-white">
-              Passionate Developer & Problem Solver
+              Passionate Web Developer & Freelancer
             </h3>
             
             <p className="text-gray-300 leading-relaxed text-lg">
-              With over 5 years of experience in web development, I specialize in creating 
+              With over 3 years of experience in web development, I specialize in creating 
               scalable, user-friendly applications using cutting-edge technologies. My journey 
               began with a curiosity for how things work, which evolved into a passion for 
               building digital solutions that make a real impact.
@@ -36,8 +36,7 @@ const About = () => {
             
             <p className="text-gray-300 leading-relaxed text-lg">
               I believe in writing clean, maintainable code and staying up-to-date with the 
-              latest industry trends. When I'm not coding, you'll find me contributing to 
-              open-source projects, mentoring junior developers, or exploring new technologies.
+              latest industry trends. If not coding then you'll find me developing websites using wordpress and wix.
             </p>
             
             <div className="grid grid-cols-2 gap-4 pt-4">
