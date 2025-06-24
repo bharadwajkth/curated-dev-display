@@ -42,7 +42,7 @@ const About = () => {
             <div className="grid grid-cols-2 gap-4 pt-4">
               <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
                 <h4 className="font-semibold text-blue-400 mb-2">Experience</h4>
-                <p className="text-gray-300">3+ Years</p>
+                <p className="text-gray-300">2+ Years</p>
               </div>
               <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
                 <h4 className="font-semibold text-blue-400 mb-2">Projects</h4>
