@@ -28,7 +28,7 @@ const About = () => {
             </h3>
             
             <p className="text-gray-300 leading-relaxed text-lg">
-              With over 3 years of experience in web development, I specialize in creating 
+              With over 2 years of experience in web development, I specialize in creating 
               scalable, user-friendly applications using cutting-edge technologies. My journey 
               began with a curiosity for how things work, which evolved into a passion for 
               building digital solutions that make a real impact.
