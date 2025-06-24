@@ -52,16 +52,16 @@ const Contact = () => {
     {
       icon: MapPin,
       title: "Location",
-      content: "San Francisco, CA",
+      content: "Hubli, Karnataka, India",
       href: "#"
     }
   ];
 
   const socialLinks = [
-    { icon: Linkedin, href: "https://linkedin.com", label: "LinkedIn" },
-    { icon: Github, href: "https://github.com", label: "GitHub" },
+    { icon: Linkedin, href: "https://www.linkedin.com/in/bharadwaj-k-ab484b247/", label: "LinkedIn" },
+    { icon: Github, href: "https://github.com/bharadwajkth", label: "GitHub" },
     { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
-    { icon: Mail, href: "mailto:alex.johnson@example.com", label: "Email" }
+    { icon: Mail, href: "mailto:bharatkth2020@gmail.com", label: "Email" }
   ];
 
   return (
