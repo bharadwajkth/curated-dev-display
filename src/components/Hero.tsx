@@ -1,4 +1,3 @@
-
 import { ArrowRight, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -6,6 +5,19 @@ const Hero = () => {
   const scrollToContact = () => {
     const element = document.querySelector("#contact");
     element?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const downloadCV = () => {
+    // Create a link element and trigger download
+    const link = document.createElement('a');
+    link.href = '/cv/Bharadwaj_CV.pdf';
+    link.download = 'Bharadwaj_CV.pdf';
+    link.target = '_blank';
+    
+    // Append to body, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -39,6 +51,7 @@ const Hero = () => {
             </Button>
             
             <Button 
+              onClick={downloadCV}
               variant="outline"
               size="lg"
               className="border-2 border-gray-400 text-gray-300 hover:bg-white hover:text-gray-900 font-semibold px-8 py-3 rounded-full transition-all duration-300 flex items-center gap-2"
