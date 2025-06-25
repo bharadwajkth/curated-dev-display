@@ -4,10 +4,10 @@ const Skills = () => {
     {
       title: "Frontend",
       skills: [
-        { name: "React", level: 95, color: "from-blue-400 to-blue-600" },
-        { name: "TypeScript", level: 90, color: "from-blue-500 to-blue-700" },
-        { name: "Next.js", level: 85, color: "from-gray-400 to-gray-600" },
-        { name: "Tailwind CSS", level: 90, color: "from-cyan-400 to-cyan-600" },
+        { name: "React", level: 70, color: "from-blue-400 to-blue-600" },
+        { name: "Javascript", level: 90, color: "from-blue-500 to-blue-700" },
+        { name: "Next.js", level: 70, color: "from-gray-400 to-gray-600" },
+        { name: "Tailwind CSS", level: 80, color: "from-cyan-400 to-cyan-600" },
       ]
     },
     {
@@ -16,16 +16,16 @@ const Skills = () => {
         { name: "Node.js", level: 85, color: "from-green-400 to-green-600" },
         { name: "Express", level: 80, color: "from-gray-400 to-gray-600" },
         { name: "PostgreSQL", level: 75, color: "from-blue-400 to-blue-600" },
-        { name: "MongoDB", level: 70, color: "from-green-400 to-green-600" },
+        { name: "Python/Flask", level: 80, color: "from-green-400 to-green-600" },
       ]
     },
     {
       title: "Tools & Others",
       skills: [
         { name: "Git", level: 90, color: "from-orange-400 to-orange-600" },
-        { name: "Docker", level: 75, color: "from-blue-400 to-blue-600" },
-        { name: "AWS", level: 70, color: "from-yellow-400 to-yellow-600" },
-        { name: "Figma", level: 80, color: "from-purple-400 to-purple-600" },
+        { name: "Wordpress", level: 80, color: "from-blue-400 to-blue-600" },
+        { name: "Figma", level: 80, color: "from-yellow-400 to-yellow-600" },
+        { name: "Wix", level: 55, color: "from-purple-400 to-purple-600" },
       ]
     }
   ];
