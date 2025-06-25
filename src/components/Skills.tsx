@@ -13,10 +13,10 @@ const Skills = () => {
     {
       title: "Backend",
       skills: [
-        { name: "Node.js", level: 85, color: "from-green-400 to-green-600" },
-        { name: "Express", level: 80, color: "from-gray-400 to-gray-600" },
+        { name: "Node.js", level: 70, color: "from-green-400 to-green-600" },
+        { name: "Express", level: 70, color: "from-gray-400 to-gray-600" },
         { name: "PostgreSQL", level: 75, color: "from-blue-400 to-blue-600" },
-        { name: "Python/Flask", level: 80, color: "from-green-400 to-green-600" },
+        { name: "Python/Flask", level: 90, color: "from-green-400 to-green-600" },
       ]
     },
     {
