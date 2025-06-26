@@ -3,11 +3,11 @@ import { useFirebaseProjects } from "../hooks/useFirebaseProjects";
 import { useEffect } from "react";
 
 const Projects = () => {
-  const { projects, loading, refetchProjects } = useFirebaseProjects();
+  const { projects, loading } = useFirebaseProjects();
 
-  // Refresh projects when component mounts
+  // Log projects whenever they change
   useEffect(() => {
-    console.log('Projects component mounted, current projects:', projects);
+    console.log('Projects component - projects updated:', projects);
   }, [projects]);
 
   if (loading) {
@@ -50,7 +50,7 @@ const Projects = () => {
     );
   }
 
-  console.log('Rendering projects:', projects);
+  console.log('Projects component - rendering with projects:', projects);
 
   return (
     <section id="projects" className="py-20 px-4 sm:px-6 lg:px-8">

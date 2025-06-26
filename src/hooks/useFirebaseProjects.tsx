@@ -43,14 +43,52 @@ const defaultProjects: Project[] = [
   }
 ];
 
+// Global state to share between all hook instances
+let globalProjects: Project[] = [];
+let globalLoading = true;
+const subscribers: Array<(projects: Project[], loading: boolean) => void> = [];
+
+// Function to notify all subscribers
+const notifySubscribers = () => {
+  subscribers.forEach(callback => callback([...globalProjects], globalLoading));
+};
+
+// Function to update global state
+const updateGlobalProjects = (projects: Project[], loading: boolean = false) => {
+  globalProjects = [...projects];
+  globalLoading = loading;
+  console.log('Global projects updated:', globalProjects);
+  notifySubscribers();
+};
+
 export const useFirebaseProjects = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState<Project[]>(globalProjects);
+  const [loading, setLoading] = useState(globalLoading);
   const { currentUser } = useAuth();
+
+  // Subscribe to global state changes
+  useEffect(() => {
+    const callback = (newProjects: Project[], newLoading: boolean) => {
+      console.log('Hook received global update:', newProjects);
+      setProjects(newProjects);
+      setLoading(newLoading);
+    };
+
+    subscribers.push(callback);
+
+    // Cleanup subscription
+    return () => {
+      const index = subscribers.indexOf(callback);
+      if (index > -1) {
+        subscribers.splice(index, 1);
+      }
+    };
+  }, []);
 
   const fetchProjects = async () => {
     try {
       console.log('Fetching projects from Firebase...');
+      updateGlobalProjects(globalProjects, true); // Set loading
       
       // Validate Firebase configuration before making requests
       if (!db) {
@@ -70,7 +108,7 @@ export const useFirebaseProjects = () => {
       const allProjects = [...defaultProjects, ...projectsData];
       console.log('All projects (default + Firebase):', allProjects);
       
-      setProjects(allProjects);
+      updateGlobalProjects(allProjects, false);
     } catch (error) {
       console.error('Error fetching projects:', error);
       
@@ -86,14 +124,15 @@ export const useFirebaseProjects = () => {
       }
       
       // Fallback to default projects on any error
-      setProjects(defaultProjects);
-    } finally {
-      setLoading(false);
+      updateGlobalProjects(defaultProjects, false);
     }
   };
 
+  // Initial fetch only once
   useEffect(() => {
-    fetchProjects();
+    if (globalProjects.length === 0) {
+      fetchProjects();
+    }
   }, []);
 
   const addProject = async (project: Omit<Project, 'id'>) => {
@@ -114,12 +153,9 @@ export const useFirebaseProjects = () => {
       const newProject = { id: docRef.id, ...project };
       console.log('Project added to Firebase with ID:', docRef.id);
       
-      // Update local state immediately
-      setProjects(prev => {
-        const updated = [...prev, newProject];
-        console.log('Updated projects after adding:', updated);
-        return updated;
-      });
+      // Update global state immediately
+      const updatedProjects = [...globalProjects, newProject];
+      updateGlobalProjects(updatedProjects);
       
       console.log('Project added successfully');
     } catch (error) {
@@ -141,13 +177,10 @@ export const useFirebaseProjects = () => {
     try {
       // Check if this is a default project
       if (id === '1' || id === '2') {
-        // For default projects, just update local state
-        console.log('Updating default project in local state');
-        setProjects(prev => {
-          const updated = prev.map(p => p.id === id ? { ...p, ...updates } : p);
-          console.log('Updated projects after local update:', updated);
-          return updated;
-        });
+        // For default projects, just update global state
+        console.log('Updating default project in global state');
+        const updatedProjects = globalProjects.map(p => p.id === id ? { ...p, ...updates } : p);
+        updateGlobalProjects(updatedProjects);
         return;
       }
 
@@ -158,11 +191,8 @@ export const useFirebaseProjects = () => {
         updatedAt: new Date().toISOString()
       });
       
-      setProjects(prev => {
-        const updated = prev.map(p => p.id === id ? { ...p, ...updates } : p);
-        console.log('Updated projects after Firebase update:', updated);
-        return updated;
-      });
+      const updatedProjects = globalProjects.map(p => p.id === id ? { ...p, ...updates } : p);
+      updateGlobalProjects(updatedProjects);
       
       console.log('Project updated successfully');
     } catch (error) {
@@ -184,13 +214,10 @@ export const useFirebaseProjects = () => {
     try {
       // Check if this is a default project (string ID)
       if (id === '1' || id === '2') {
-        // For default projects, just remove from local state
-        console.log('Deleting default project from local state');
-        setProjects(prev => {
-          const updated = prev.filter(p => p.id !== id);
-          console.log('Updated projects after deletion:', updated);
-          return updated;
-        });
+        // For default projects, just remove from global state
+        console.log('Deleting default project from global state');
+        const updatedProjects = globalProjects.filter(p => p.id !== id);
+        updateGlobalProjects(updatedProjects);
         return;
       }
 
@@ -198,12 +225,9 @@ export const useFirebaseProjects = () => {
       console.log('Deleting project from Firebase');
       await deleteDoc(doc(db, 'projects', id));
       
-      // Update local state
-      setProjects(prev => {
-        const updated = prev.filter(p => p.id !== id);
-        console.log('Updated projects after Firebase deletion:', updated);
-        return updated;
-      });
+      // Update global state
+      const updatedProjects = globalProjects.filter(p => p.id !== id);
+      updateGlobalProjects(updatedProjects);
       
       console.log('Project deleted successfully');
     } catch (error) {
@@ -222,6 +246,6 @@ export const useFirebaseProjects = () => {
     updateProject,
     deleteProject,
     isAuthenticated: !!currentUser,
-    refetchProjects: fetchProjects // Add this to manually refresh projects
+    refetchProjects: fetchProjects
   };
 };
