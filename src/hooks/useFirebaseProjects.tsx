@@ -24,7 +24,7 @@ export interface Project {
 
 const defaultProjects: Project[] = [
   {
-    id: '1',
+    id: 'default-1',
     title: "E-Commerce Platform",
     description: "A full-stack e-commerce platform with React, Node.js, and PostgreSQL. Features include user authentication, payment processing, and admin dashboard.",
     image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=500&h=300&fit=crop",
@@ -33,7 +33,7 @@ const defaultProjects: Project[] = [
     githubUrl: "https://github.com"
   },
   {
-    id: '2',
+    id: 'default-2',
     title: "Task Management App",
     description: "A collaborative task management application with real-time updates, drag & drop functionality, and team collaboration features.",
     image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=500&h=300&fit=crop",
@@ -43,9 +43,44 @@ const defaultProjects: Project[] = [
   }
 ];
 
+// Local storage key for deleted default projects
+const DELETED_DEFAULTS_KEY = 'portfolio_deleted_default_projects';
+
+// Function to get deleted default project IDs from localStorage
+const getDeletedDefaultIds = (): string[] => {
+  try {
+    const stored = localStorage.getItem(DELETED_DEFAULTS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Error reading deleted defaults from localStorage:', error);
+    return [];
+  }
+};
+
+// Function to save deleted default project IDs to localStorage
+const saveDeletedDefaultId = (id: string) => {
+  try {
+    const deletedIds = getDeletedDefaultIds();
+    if (!deletedIds.includes(id)) {
+      deletedIds.push(id);
+      localStorage.setItem(DELETED_DEFAULTS_KEY, JSON.stringify(deletedIds));
+      console.log('Saved deleted default project ID:', id);
+    }
+  } catch (error) {
+    console.error('Error saving deleted default to localStorage:', error);
+  }
+};
+
+// Function to get filtered default projects (excluding deleted ones)
+const getFilteredDefaultProjects = (): Project[] => {
+  const deletedIds = getDeletedDefaultIds();
+  return defaultProjects.filter(project => !deletedIds.includes(project.id));
+};
+
 // Global state to share between all hook instances
 let globalProjects: Project[] = [];
 let globalLoading = true;
+let isInitialized = false;
 const subscribers: Array<(projects: Project[], loading: boolean) => void> = [];
 
 // Function to notify all subscribers
@@ -104,9 +139,13 @@ export const useFirebaseProjects = () => {
       
       console.log('Firebase projects fetched:', projectsData);
       
-      // Combine default projects with Firebase projects
-      const allProjects = [...defaultProjects, ...projectsData];
-      console.log('All projects (default + Firebase):', allProjects);
+      // Get filtered default projects (excluding deleted ones)
+      const filteredDefaults = getFilteredDefaultProjects();
+      console.log('Filtered default projects:', filteredDefaults);
+      
+      // Combine filtered default projects with Firebase projects
+      const allProjects = [...filteredDefaults, ...projectsData];
+      console.log('All projects (filtered defaults + Firebase):', allProjects);
       
       updateGlobalProjects(allProjects, false);
     } catch (error) {
@@ -123,14 +162,16 @@ export const useFirebaseProjects = () => {
         }
       }
       
-      // Fallback to default projects on any error
-      updateGlobalProjects(defaultProjects, false);
+      // Fallback to filtered default projects on any error
+      const filteredDefaults = getFilteredDefaultProjects();
+      updateGlobalProjects(filteredDefaults, false);
     }
   };
 
   // Initial fetch only once
   useEffect(() => {
-    if (globalProjects.length === 0) {
+    if (!isInitialized) {
+      isInitialized = true;
       fetchProjects();
     }
   }, []);
@@ -176,7 +217,7 @@ export const useFirebaseProjects = () => {
 
     try {
       // Check if this is a default project
-      if (id === '1' || id === '2') {
+      if (id.startsWith('default-')) {
         // For default projects, just update global state
         console.log('Updating default project in global state');
         const updatedProjects = globalProjects.map(p => p.id === id ? { ...p, ...updates } : p);
@@ -212,10 +253,11 @@ export const useFirebaseProjects = () => {
     console.log('Attempting to delete project with ID:', id);
 
     try {
-      // Check if this is a default project (string ID)
-      if (id === '1' || id === '2') {
-        // For default projects, just remove from global state
-        console.log('Deleting default project from global state');
+      // Check if this is a default project
+      if (id.startsWith('default-')) {
+        // For default projects, save to localStorage and remove from global state
+        console.log('Deleting default project from global state and saving to localStorage');
+        saveDeletedDefaultId(id);
         const updatedProjects = globalProjects.filter(p => p.id !== id);
         updateGlobalProjects(updatedProjects);
         return;
