@@ -98,10 +98,6 @@ export const useFirebaseProjects = () => {
       throw new Error('Authentication required: You must be logged in to add projects');
     }
 
-    if (!currentUser.emailVerified) {
-      throw new Error('Email verification required: Please verify your email before adding projects');
-    }
-
     try {
       const docRef = await addDoc(collection(db, 'projects'), {
         ...project,
@@ -126,10 +122,6 @@ export const useFirebaseProjects = () => {
       throw new Error('Authentication required: You must be logged in to update projects');
     }
 
-    if (!currentUser.emailVerified) {
-      throw new Error('Email verification required: Please verify your email before updating projects');
-    }
-
     try {
       await updateDoc(doc(db, 'projects', id), {
         ...updates,
@@ -150,10 +142,6 @@ export const useFirebaseProjects = () => {
   const deleteProject = async (id: string) => {
     if (!currentUser) {
       throw new Error('Authentication required: You must be logged in to delete projects');
-    }
-
-    if (!currentUser.emailVerified) {
-      throw new Error('Email verification required: Please verify your email before deleting projects');
     }
 
     try {

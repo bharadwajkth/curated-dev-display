@@ -127,14 +127,16 @@ const Navigation = () => {
       <nav className="fixed top-0 w-full bg-slate-900/95 backdrop-blur-sm z-40 border-b border-slate-700/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Logo */}
             <div className="flex-shrink-0">
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                 Portfolio
               </span>
             </div>
             
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-8">
+            {/* Desktop Navigation - Centered */}
+            <div className="hidden md:flex flex-1 justify-center">
+              <div className="flex items-baseline space-x-8">
                 {navItems.map((item) => (
                   <button
                     key={item.name}
@@ -146,7 +148,46 @@ const Navigation = () => {
                 ))}
               </div>
             </div>
+
+            {/* Desktop Auth Section */}
+            <div className="hidden md:flex items-center space-x-4">
+              {isAuthenticated ? (
+                <>
+                  <span className="text-xs text-gray-300 max-w-32 truncate">
+                    {currentUser?.email}
+                  </span>
+                  <Button
+                    onClick={handleLogout}
+                    variant="outline"
+                    size="sm"
+                    className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
+                  >
+                    <LogOut size={14} className="mr-1" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={() => setShowLoginModal(true)}
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white"
+                >
+                  <LogIn size={14} className="mr-1" />
+                  Login
+                </Button>
+              )}
+              
+              <Button 
+                onClick={handleManageProjects}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg text-sm px-4 py-2"
+              >
+                <Plus size={14} className="mr-2" />
+                Projects
+              </Button>
+            </div>
             
+            {/* Mobile menu button */}
             <div className="md:hidden">
               <button
                 onClick={() => setIsOpen(!isOpen)}
@@ -158,6 +199,7 @@ const Navigation = () => {
           </div>
         </div>
 
+        {/* Mobile Navigation */}
         {isOpen && (
           <div className="md:hidden bg-slate-800/95 backdrop-blur-sm z-30 relative">
             <div className="px-2 pt-2 pb-3 space-y-1">
