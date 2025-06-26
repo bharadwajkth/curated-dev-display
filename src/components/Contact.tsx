@@ -1,17 +1,18 @@
-
 import { useState } from "react";
-import { Mail, Phone, MapPin, Linkedin, Github, Twitter } from "lucide-react";
+import { Mail, Phone, MapPin, Linkedin, Github, Twitter, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { sendContactEmail, isEmailJSConfigured, type ContactFormData } from "../lib/emailjs";
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ContactFormData>({
     name: "",
     email: "",
     message: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -21,19 +22,98 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateForm = (): boolean => {
+    if (!formData.name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter your name",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (!formData.email.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (!formData.message.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter your message",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (formData.message.trim().length < 10) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a message with at least 10 characters",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simulate form submission
-    console.log("Form submitted:", formData);
-    
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for your message. I'll get back to you soon!",
-    });
-    
-    // Reset form
-    setFormData({ name: "", email: "", message: "" });
+    if (!validateForm()) {
+      return;
+    }
+
+    // Check if EmailJS is configured
+    if (!isEmailJSConfigured()) {
+      toast({
+        title: "Email Service Not Available",
+        description: "Email functionality is currently not configured. Please contact me directly at bharatkth2020@gmail.com",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await sendContactEmail(formData);
+      
+      toast({
+        title: "Message Sent Successfully! ✅",
+        description: "Thank you for your message! I'll get back to you as soon as possible.",
+      });
+      
+      // Reset form
+      setFormData({ name: "", email: "", message: "" });
+      
+    } catch (error: any) {
+      console.error('Contact form error:', error);
+      
+      toast({
+        title: "Failed to Send Message",
+        description: error.message || "Something went wrong. Please try again or contact me directly at bharatkth2020@gmail.com",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
@@ -60,7 +140,7 @@ const Contact = () => {
   const socialLinks = [
     { icon: Linkedin, href: "https://www.linkedin.com/in/bharadwaj-k-ab484b247/", label: "LinkedIn" },
     { icon: Github, href: "https://github.com/bharadwajkth", label: "GitHub" },
-    { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
+    { icon: Twitter, href: "https://twitter.com", label: "Twitter" }
   ];
 
   return (
@@ -130,7 +210,7 @@ const Contact = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                  Name
+                  Name *
                 </label>
                 <Input
                   type="text"
@@ -139,6 +219,7 @@ const Contact = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
+                  disabled={isSubmitting}
                   className="w-full bg-slate-700 border-slate-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
                   placeholder="Your Name"
                 />
@@ -146,7 +227,7 @@ const Contact = () => {
               
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                  Email
+                  Email *
                 </label>
                 <Input
                   type="email"
@@ -155,6 +236,7 @@ const Contact = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  disabled={isSubmitting}
                   className="w-full bg-slate-700 border-slate-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
                   placeholder="your.email@example.com"
                 />
@@ -162,7 +244,7 @@ const Contact = () => {
               
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-2">
-                  Message
+                  Message *
                 </label>
                 <Textarea
                   id="message"
@@ -170,6 +252,7 @@ const Contact = () => {
                   value={formData.message}
                   onChange={handleChange}
                   required
+                  disabled={isSubmitting}
                   rows={5}
                   className="w-full bg-slate-700 border-slate-600 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 resize-none"
                   placeholder="Tell me about your project or just say hello..."
@@ -178,11 +261,35 @@ const Contact = () => {
               
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
-                Send Message
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Sending Message...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5 mr-2" />
+                    Send Message
+                  </>
+                )}
               </Button>
             </form>
+            
+            {/* EmailJS Status Indicator */}
+            <div className="mt-4 text-center">
+              {isEmailJSConfigured() ? (
+                <p className="text-xs text-green-400">
+                  ✅ Email service is active
+                </p>
+              ) : (
+                <p className="text-xs text-yellow-400">
+                  ⚠️ Email service needs configuration
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
