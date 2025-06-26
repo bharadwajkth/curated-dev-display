@@ -1,8 +1,14 @@
 import ProjectCard from "./ProjectCard";
 import { useFirebaseProjects } from "../hooks/useFirebaseProjects";
+import { useEffect } from "react";
 
 const Projects = () => {
-  const { projects, loading } = useFirebaseProjects();
+  const { projects, loading, refetchProjects } = useFirebaseProjects();
+
+  // Refresh projects when component mounts
+  useEffect(() => {
+    console.log('Projects component mounted, current projects:', projects);
+  }, [projects]);
 
   if (loading) {
     return (
@@ -44,6 +50,8 @@ const Projects = () => {
     );
   }
 
+  console.log('Rendering projects:', projects);
+
   return (
     <section id="projects" className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -57,19 +65,25 @@ const Projects = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              title={project.title}
-              description={project.description}
-              image={project.image}
-              techStack={project.techStack}
-              liveUrl={project.liveUrl}
-              githubUrl={project.githubUrl}
-            />
-          ))}
-        </div>
+        {projects.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 text-lg">No projects found. Add some projects to get started!</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                title={project.title}
+                description={project.description}
+                image={project.image}
+                techStack={project.techStack}
+                liveUrl={project.liveUrl}
+                githubUrl={project.githubUrl}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

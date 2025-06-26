@@ -50,6 +50,8 @@ export const useFirebaseProjects = () => {
 
   const fetchProjects = async () => {
     try {
+      console.log('Fetching projects from Firebase...');
+      
       // Validate Firebase configuration before making requests
       if (!db) {
         throw new Error('Firebase is not properly initialized. Check your configuration.');
@@ -62,12 +64,13 @@ export const useFirebaseProjects = () => {
         ...doc.data()
       })) as Project[];
       
-      if (projectsData.length === 0) {
-        // If no projects in Firestore, use default projects
-        setProjects(defaultProjects);
-      } else {
-        setProjects(projectsData);
-      }
+      console.log('Firebase projects fetched:', projectsData);
+      
+      // Combine default projects with Firebase projects
+      const allProjects = [...defaultProjects, ...projectsData];
+      console.log('All projects (default + Firebase):', allProjects);
+      
+      setProjects(allProjects);
     } catch (error) {
       console.error('Error fetching projects:', error);
       
@@ -98,6 +101,8 @@ export const useFirebaseProjects = () => {
       throw new Error('Authentication required: You must be logged in to add projects');
     }
 
+    console.log('Adding new project:', project);
+
     try {
       const docRef = await addDoc(collection(db, 'projects'), {
         ...project,
@@ -107,7 +112,16 @@ export const useFirebaseProjects = () => {
       });
       
       const newProject = { id: docRef.id, ...project };
-      setProjects(prev => [...prev, newProject]);
+      console.log('Project added to Firebase with ID:', docRef.id);
+      
+      // Update local state immediately
+      setProjects(prev => {
+        const updated = [...prev, newProject];
+        console.log('Updated projects after adding:', updated);
+        return updated;
+      });
+      
+      console.log('Project added successfully');
     } catch (error) {
       console.error('Error adding project:', error);
       if (error instanceof Error && error.message.includes('permission-denied')) {
@@ -122,14 +136,35 @@ export const useFirebaseProjects = () => {
       throw new Error('Authentication required: You must be logged in to update projects');
     }
 
+    console.log('Updating project with ID:', id, 'Updates:', updates);
+
     try {
+      // Check if this is a default project
+      if (id === '1' || id === '2') {
+        // For default projects, just update local state
+        console.log('Updating default project in local state');
+        setProjects(prev => {
+          const updated = prev.map(p => p.id === id ? { ...p, ...updates } : p);
+          console.log('Updated projects after local update:', updated);
+          return updated;
+        });
+        return;
+      }
+
+      // For Firebase projects, update in Firestore
       await updateDoc(doc(db, 'projects', id), {
         ...updates,
         updatedBy: currentUser.uid,
         updatedAt: new Date().toISOString()
       });
       
-      setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+      setProjects(prev => {
+        const updated = prev.map(p => p.id === id ? { ...p, ...updates } : p);
+        console.log('Updated projects after Firebase update:', updated);
+        return updated;
+      });
+      
+      console.log('Project updated successfully');
     } catch (error) {
       console.error('Error updating project:', error);
       if (error instanceof Error && error.message.includes('permission-denied')) {
@@ -186,6 +221,7 @@ export const useFirebaseProjects = () => {
     addProject,
     updateProject,
     deleteProject,
-    isAuthenticated: !!currentUser
+    isAuthenticated: !!currentUser,
+    refetchProjects: fetchProjects // Add this to manually refresh projects
   };
 };

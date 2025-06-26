@@ -15,7 +15,7 @@ const Navigation = () => {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const { projects, addProject, updateProject, deleteProject, isAuthenticated } = useFirebaseProjects();
+  const { projects, addProject, updateProject, deleteProject, isAuthenticated, refetchProjects } = useFirebaseProjects();
   const { currentUser, logout } = useAuth();
   const { toast } = useToast();
 
@@ -47,6 +47,10 @@ const Navigation = () => {
           title: "Success",
           description: "Project added successfully!",
         });
+        // Refresh projects to ensure the new project appears
+        setTimeout(() => {
+          refetchProjects();
+        }, 1000);
       }
       setEditingProject(null);
       setIsAddingNew(false);
@@ -83,6 +87,10 @@ const Navigation = () => {
         title: "Success",
         description: "Project deleted successfully!",
       });
+      // Refresh projects to ensure the deleted project is removed
+      setTimeout(() => {
+        refetchProjects();
+      }, 500);
     } catch (error: any) {
       toast({
         title: "Error",
