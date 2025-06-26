@@ -61,7 +61,6 @@ const Contact = () => {
     { icon: Linkedin, href: "https://www.linkedin.com/in/bharadwaj-k-ab484b247/", label: "LinkedIn" },
     { icon: Github, href: "https://github.com/bharadwajkth", label: "GitHub" },
     { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
-    { icon: Mail, href: "mailto:bharatkth2020@gmail.com", label: "Email" }
   ];
 
   return (
