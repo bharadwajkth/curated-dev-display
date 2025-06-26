@@ -144,9 +144,33 @@ export const useFirebaseProjects = () => {
       throw new Error('Authentication required: You must be logged in to delete projects');
     }
 
+    console.log('Attempting to delete project with ID:', id);
+
     try {
+      // Check if this is a default project (string ID)
+      if (id === '1' || id === '2') {
+        // For default projects, just remove from local state
+        console.log('Deleting default project from local state');
+        setProjects(prev => {
+          const updated = prev.filter(p => p.id !== id);
+          console.log('Updated projects after deletion:', updated);
+          return updated;
+        });
+        return;
+      }
+
+      // For Firebase projects, delete from Firestore
+      console.log('Deleting project from Firebase');
       await deleteDoc(doc(db, 'projects', id));
-      setProjects(prev => prev.filter(p => p.id !== id));
+      
+      // Update local state
+      setProjects(prev => {
+        const updated = prev.filter(p => p.id !== id);
+        console.log('Updated projects after Firebase deletion:', updated);
+        return updated;
+      });
+      
+      console.log('Project deleted successfully');
     } catch (error) {
       console.error('Error deleting project:', error);
       if (error instanceof Error && error.message.includes('permission-denied')) {
