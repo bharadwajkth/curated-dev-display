@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, Link, X, Image as ImageIcon } from "lucide-react";
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../lib/firebase';
+import { storage, isFirebaseConfigured } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { Project } from "../hooks/useFirebaseProjects";
@@ -74,6 +74,11 @@ const ProjectForm = ({ project, onSave, onCancel }: ProjectFormProps) => {
       throw new Error('No file selected or user not authenticated');
     }
 
+    // Check if Firebase Storage is configured
+    if (!isFirebaseConfigured || !storage) {
+      throw new Error('Image upload is not available. Please use an image URL instead, or deploy to a server with Firebase configured.');
+    }
+
     setUploading(true);
     
     try {
@@ -82,9 +87,15 @@ const ProjectForm = ({ project, onSave, onCancel }: ProjectFormProps) => {
       const fileName = `projects/${currentUser.uid}/${timestamp}_${imageFile.name}`;
       const storageRef = ref(storage, fileName);
       
-      // Upload the file
+      // Upload the file with timeout
       console.log('Uploading image to Firebase Storage...');
-      const snapshot = await uploadBytes(storageRef, imageFile);
+      
+      const uploadPromise = uploadBytes(storageRef, imageFile);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Upload timed out. Please try again or use an image URL.')), 30000);
+      });
+      
+      const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
       
       // Get the download URL
       const downloadURL = await getDownloadURL(snapshot.ref);
@@ -93,7 +104,10 @@ const ProjectForm = ({ project, onSave, onCancel }: ProjectFormProps) => {
       return downloadURL;
     } catch (error) {
       console.error('Error uploading image:', error);
-      throw new Error('Failed to upload image. Please try again.');
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to upload image. Please try again or use an image URL.');
     } finally {
       setUploading(false);
     }
