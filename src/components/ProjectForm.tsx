@@ -76,7 +76,7 @@ const ProjectForm = ({ project, onSave, onCancel }: ProjectFormProps) => {
 
     // Check if Firebase Storage is configured
     if (!isFirebaseConfigured || !storage) {
-      throw new Error('Image upload is not available. Please use an image URL instead, or deploy to a server with Firebase configured.');
+      throw new Error('Image upload is not available. Please use an image URL instead.');
     }
 
     setUploading(true);
@@ -84,30 +84,49 @@ const ProjectForm = ({ project, onSave, onCancel }: ProjectFormProps) => {
     try {
       // Create a unique filename
       const timestamp = Date.now();
-      const fileName = `projects/${currentUser.uid}/${timestamp}_${imageFile.name}`;
+      const sanitizedFileName = imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `projects/${currentUser.uid}/${timestamp}_${sanitizedFileName}`;
       const storageRef = ref(storage, fileName);
       
-      // Upload the file with timeout
-      console.log('Uploading image to Firebase Storage...');
+      console.log('Starting upload to Firebase Storage...');
+      console.log('File:', imageFile.name, 'Size:', imageFile.size);
+      console.log('Path:', fileName);
       
+      // Upload the file with timeout
       const uploadPromise = uploadBytes(storageRef, imageFile);
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Upload timed out. Please try again or use an image URL.')), 30000);
+        setTimeout(() => {
+          reject(new Error('Upload timed out after 30 seconds. This usually means Firebase Storage rules are blocking the upload. Please check your Firebase Storage Rules in the Firebase Console.'));
+        }, 30000);
       });
       
       const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
       
       // Get the download URL
+      console.log('Upload complete, getting download URL...');
       const downloadURL = await getDownloadURL(snapshot.ref);
       console.log('Image uploaded successfully:', downloadURL);
       
       return downloadURL;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      if (error instanceof Error) {
-        throw error;
+    } catch (error: any) {
+      console.error('Upload error details:', error);
+      
+      // Provide helpful error messages based on Firebase error codes
+      let errorMessage = 'Failed to upload image.';
+      
+      if (error?.code === 'storage/unauthorized') {
+        errorMessage = 'Permission denied. Please update your Firebase Storage Rules to allow authenticated uploads.';
+      } else if (error?.code === 'storage/canceled') {
+        errorMessage = 'Upload was canceled.';
+      } else if (error?.code === 'storage/unknown') {
+        errorMessage = 'Unknown error occurred. Please check Firebase Storage configuration and CORS settings.';
+      } else if (error?.message?.includes('timed out')) {
+        errorMessage = error.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
       }
-      throw new Error('Failed to upload image. Please try again or use an image URL.');
+      
+      throw new Error(errorMessage);
     } finally {
       setUploading(false);
     }
