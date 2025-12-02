@@ -6,7 +6,7 @@ import {
   onAuthStateChanged,
   sendEmailVerification 
 } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth, isFirebaseConfigured } from '../lib/firebase';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -14,6 +14,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
   loading: boolean;
+  isConfigured: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,8 +32,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   const login = async (email: string, password: string) => {
+    if (!isFirebaseConfigured || !auth) {
+      throw new Error('Firebase is not configured. Authentication is not available in preview mode.');
+    }
+
     try {
-      // Validate input
       if (!email || !password) {
         throw new Error('Email and password are required');
       }
@@ -47,7 +51,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // Check if email is verified for admin actions
       if (!userCredential.user.emailVerified) {
         console.warn('Email not verified. Some features may be limited.');
       }
@@ -55,7 +58,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Login error:', error);
       
-      // Provide user-friendly error messages
       if (error instanceof Error) {
         if (error.message.includes('user-not-found')) {
           throw new Error('No account found with this email address');
@@ -73,6 +75,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
+    if (!isFirebaseConfigured || !auth) {
+      throw new Error('Firebase is not configured');
+    }
+
     try {
       await signOut(auth);
     } catch (error) {
@@ -95,11 +101,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // If Firebase is not configured, just set loading to false and continue
+    if (!isFirebaseConfigured || !auth) {
+      console.log('Firebase not configured, running in preview mode');
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       setLoading(false);
       
-      // Log authentication state changes (for debugging)
       if (user) {
         console.log('User authenticated:', user.email, 'Verified:', user.emailVerified);
       } else {
@@ -118,7 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     logout,
     sendVerificationEmail,
-    loading
+    loading,
+    isConfigured: isFirebaseConfigured
   };
 
   return (
