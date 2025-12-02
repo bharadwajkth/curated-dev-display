@@ -9,7 +9,7 @@ import {
   orderBy, 
   query 
 } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, isFirebaseConfigured } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 
 export interface Project {
@@ -122,12 +122,15 @@ export const useFirebaseProjects = () => {
 
   const fetchProjects = async () => {
     try {
-      console.log('Fetching projects from Firebase...');
+      console.log('Fetching projects...');
       updateGlobalProjects(globalProjects, true); // Set loading
       
-      // Validate Firebase configuration before making requests
-      if (!db) {
-        throw new Error('Firebase is not properly initialized. Check your configuration.');
+      // If Firebase is not configured, just use default projects
+      if (!isFirebaseConfigured || !db) {
+        console.log('Firebase not configured, using default projects only');
+        const filteredDefaults = getFilteredDefaultProjects();
+        updateGlobalProjects(filteredDefaults, false);
+        return;
       }
 
       const q = query(collection(db, 'projects'), orderBy('title'));
@@ -154,9 +157,9 @@ export const useFirebaseProjects = () => {
       // Provide more specific error handling
       if (error instanceof Error) {
         if (error.message.includes('permission-denied') || error.message.includes('insufficient permissions')) {
-          console.warn('Firestore permissions issue. Using default projects. Please check your Firebase Security Rules.');
+          console.warn('Firestore permissions issue. Using default projects.');
         } else if (error.message.includes('network')) {
-          console.warn('Network error. Using default projects. Please check your internet connection.');
+          console.warn('Network error. Using default projects.');
         } else {
           console.warn('Firebase error:', error.message);
         }
@@ -179,6 +182,10 @@ export const useFirebaseProjects = () => {
   const addProject = async (project: Omit<Project, 'id'>) => {
     if (!currentUser) {
       throw new Error('Authentication required: You must be logged in to add projects');
+    }
+
+    if (!isFirebaseConfigured || !db) {
+      throw new Error('Firebase is not configured. Cannot add projects in preview mode.');
     }
 
     console.log('Adding new project:', project);
@@ -211,6 +218,10 @@ export const useFirebaseProjects = () => {
   const updateProject = async (id: string, updates: Partial<Project>) => {
     if (!currentUser) {
       throw new Error('Authentication required: You must be logged in to update projects');
+    }
+
+    if (!isFirebaseConfigured || !db) {
+      throw new Error('Firebase is not configured. Cannot update projects in preview mode.');
     }
 
     console.log('Updating project with ID:', id, 'Updates:', updates);
@@ -248,6 +259,10 @@ export const useFirebaseProjects = () => {
   const deleteProject = async (id: string) => {
     if (!currentUser) {
       throw new Error('Authentication required: You must be logged in to delete projects');
+    }
+
+    if (!isFirebaseConfigured || !db) {
+      throw new Error('Firebase is not configured. Cannot delete projects in preview mode.');
     }
 
     console.log('Attempting to delete project with ID:', id);
