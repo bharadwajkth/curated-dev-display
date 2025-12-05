@@ -5,8 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, Link, X, Image as ImageIcon } from "lucide-react";
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage, isFirebaseConfigured } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import { Project } from "../hooks/useFirebaseProjects";
@@ -74,58 +73,58 @@ const ProjectForm = ({ project, onSave, onCancel }: ProjectFormProps) => {
       throw new Error('No file selected or user not authenticated');
     }
 
-    // Check if Firebase Storage is configured
-    if (!isFirebaseConfigured || !storage) {
-      throw new Error('Image upload is not available. Please use an image URL instead.');
-    }
-
     setUploading(true);
-    
+
     try {
       // Create a unique filename
       const timestamp = Date.now();
       const sanitizedFileName = imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const fileName = `projects/${currentUser.uid}/${timestamp}_${sanitizedFileName}`;
-      const storageRef = ref(storage, fileName);
-      
-      console.log('Starting upload to Firebase Storage...');
+      const fileName = `${currentUser.uid}/${timestamp}_${sanitizedFileName}`;
+
+      console.log('Starting upload to Supabase Storage...');
       console.log('File:', imageFile.name, 'Size:', imageFile.size);
       console.log('Path:', fileName);
-      
-      // Upload the file with timeout
-      const uploadPromise = uploadBytes(storageRef, imageFile);
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error('Upload timed out after 30 seconds. This usually means Firebase Storage rules are blocking the upload. Please check your Firebase Storage Rules in the Firebase Console.'));
-        }, 30000);
-      });
-      
-      const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
-      
-      // Get the download URL
-      console.log('Upload complete, getting download URL...');
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      console.log('Image uploaded successfully:', downloadURL);
-      
-      return downloadURL;
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('project-images')
+        .upload(fileName, imageFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('Upload failed: No data returned');
+      }
+
+      // Get the public URL
+      const { data: publicData } = supabase.storage
+        .from('project-images')
+        .getPublicUrl(fileName);
+
+      if (!publicData?.publicUrl) {
+        throw new Error('Failed to get public URL for uploaded image');
+      }
+
+      console.log('Image uploaded successfully:', publicData.publicUrl);
+      return publicData.publicUrl;
     } catch (error: any) {
       console.error('Upload error details:', error);
-      
-      // Provide helpful error messages based on Firebase error codes
+
       let errorMessage = 'Failed to upload image.';
-      
-      if (error?.code === 'storage/unauthorized') {
-        errorMessage = 'Permission denied. Please update your Firebase Storage Rules to allow authenticated uploads.';
-      } else if (error?.code === 'storage/canceled') {
-        errorMessage = 'Upload was canceled.';
-      } else if (error?.code === 'storage/unknown') {
-        errorMessage = 'Unknown error occurred. Please check Firebase Storage configuration and CORS settings.';
-      } else if (error?.message?.includes('timed out')) {
-        errorMessage = error.message;
+
+      if (error?.message?.includes('quota')) {
+        errorMessage = 'Storage quota exceeded. Please contact support.';
+      } else if (error?.message?.includes('not authorized')) {
+        errorMessage = 'You do not have permission to upload files.';
       } else if (error?.message) {
         errorMessage = error.message;
       }
-      
+
       throw new Error(errorMessage);
     } finally {
       setUploading(false);
